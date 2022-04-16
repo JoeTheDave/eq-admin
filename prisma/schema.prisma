@@ -1,0 +1,47 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Family {
+  id String @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  persons Person[]
+  sourceDistances Distance[] @relation("sourceFamily")
+  destinationDistances Distance[] @relation("destinationFamily")
+  name String
+  address String
+  lat Float
+  lng Float
+  active Boolean @default(true)
+}
+
+model Person {
+  id String @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  familyId String
+  resource Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  name String
+  calling String?
+  isMinister Boolean @default(false)
+}
+
+model Distance {
+  id String @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sourceFamilyId String
+  sourceFamily Family @relation("sourceFamily", fields: [sourceFamilyId], references: [id], onDelete: Cascade)
+  destinationFamilyId String
+  destinationFamily Family @relation("destinationFamily", fields: [destinationFamilyId], references: [id], onDelete: Cascade)
+  distance Float
+}

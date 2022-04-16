@@ -1,0 +1,25 @@
+#map-page {
+  height: 100%;
+  display: flex;
+}
+
+#member-list {
+  height: 100%;
+  width: 400px;
+  border-right: solid 1px rgba(0, 0, 0, 0.12);
+  overflow: auto;
+}
+
+.member-list-divider {
+  height: 48px;
+  width: 90%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+#map-container {
+  height: 100%;
+  flex-grow: 1;
+}
