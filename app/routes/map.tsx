@@ -36,7 +36,7 @@ export const loader: LoaderFunction = async () => {
   };
 };
 
-export default function MapIndexRoute() {
+export default function MapRoute() {
   const data = useLoaderData<LoaderData>();
 
   const { ref, map, google } = useGoogleMaps(
@@ -59,30 +59,7 @@ export default function MapIndexRoute() {
           title: fam.name,
         }),
     );
-
-    // marker.setMap(map);
   }
-
-  // useEffect(() => {
-  //   setTimeout(async () => {
-  //     const options: LoaderOptions = {
-  //       /* todo */
-  //     };
-  //     const loader = new Loader(
-  //       'AIzaSyC-d1WM72-74auAY0USczfUb68ZAgbjxec',
-  //       options,
-  //     );
-
-  //     const google = await loader.load();
-  //     const map = new google.maps.Map(
-  //       document.getElementById('map-container') as HTMLElement,
-  //       {
-  //         center: { lat: 39.0628883, lng: -94.6942146 },
-  //         zoom: 12,
-  //       },
-  //     );
-  //   }, 1000);
-  // }, []);
 
   return (
     <div id="map-page">

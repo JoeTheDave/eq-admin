@@ -17,11 +17,12 @@ model Family {
   persons Person[]
   sourceDistances Distance[] @relation("sourceFamily")
   destinationDistances Distance[] @relation("destinationFamily")
+  churchId String
   name String
   address String
   lat Float
   lng Float
-  active Boolean @default(true)
+  active Boolean?
 }
 
 model Person {
@@ -30,9 +31,10 @@ model Person {
   updatedAt DateTime @updatedAt
   familyId String
   resource Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  chruchId String
   name String
   calling String?
-  isMinister Boolean @default(false)
+  isMinister Boolean?
 }
 
 model Distance {

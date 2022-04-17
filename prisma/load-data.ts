@@ -11,8 +11,10 @@ interface FamilyData {
     latitude: number;
     longitude: number;
   };
+  uuid: string;
   members: {
     displayName: string;
+    uuid: string;
     positions?: {
       positionTypeName: string;
     }[];
@@ -32,9 +34,11 @@ var familyData: FamilyData[] = JSON.parse(
           address: family.address,
           lat: family.coordinates?.latitude || 0,
           lng: family.coordinates?.longitude || 0,
+          churchId: family.uuid,
           persons: {
             create: family.members.map((member) => ({
               name: member.displayName,
+              chruchId: member.uuid,
               calling: (member.positions || [])
                 .map((pos) => pos.positionTypeName)
                 .join('|'),

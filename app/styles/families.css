@@ -1,0 +1,17 @@
+#families-page {
+  height: 100%;
+  overflow: auto;
+  background-color: #eee;
+}
+
+.letter-grouping {
+  display: flex;
+  padding: 20px;
+  flex-wrap: wrap;
+}
+
+.grouping-header {
+  margin-top: 20px;
+  margin-left: 35px;
+  margin-bottom: -30px;
+}
