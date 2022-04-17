@@ -4,10 +4,11 @@ import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { useFetcher } from '@remix-run/react';
-import type { Family } from '@prisma/client';
+import type { FamilyWithMembers } from '~/routes/families';
+import PersonRow from '~/components/PersonRow';
 
 interface FamilyCardProps {
-  family: Family;
+  family: FamilyWithMembers;
 }
 
 const FamilyCard: React.FC<FamilyCardProps> = ({ family }) => {
@@ -15,9 +16,10 @@ const FamilyCard: React.FC<FamilyCardProps> = ({ family }) => {
   return (
     <Card
       sx={{
-        minWidth: 350,
+        minWidth: 400,
         margin: 2,
         position: 'relative',
+        transition: '0.5s',
         backgroundColor: family.active
           ? '#EFE'
           : family.active === false
@@ -48,6 +50,15 @@ const FamilyCard: React.FC<FamilyCardProps> = ({ family }) => {
         <Typography sx={{ fontSize: 18 }} color="#888" gutterBottom>
           {family.name.split(', ')[1]}
         </Typography>
+        <div className="family-members-container">
+          {family.persons.map((person) => (
+            <PersonRow
+              key={`member-${person.id}`}
+              person={person}
+              family={family}
+            />
+          ))}
+        </div>
       </CardContent>
       <CardActions sx={{ justifyContent: 'flex-end' }}>
         {family.active !== false && (
@@ -58,7 +69,7 @@ const FamilyCard: React.FC<FamilyCardProps> = ({ family }) => {
             onClick={() =>
               fetcher.submit(
                 { id: family.id, value: 'false' },
-                { method: 'post', action: '/families' },
+                { method: 'post', action: '/api/set-family-activity' },
               )
             }
             loading={fetcher.state !== 'idle'}
@@ -75,7 +86,7 @@ const FamilyCard: React.FC<FamilyCardProps> = ({ family }) => {
             onClick={() =>
               fetcher.submit(
                 { id: family.id, value: 'true' },
-                { method: 'post', action: '/families' },
+                { method: 'post', action: '/api/set-family-activity' },
               )
             }
             loading={fetcher.state !== 'idle'}

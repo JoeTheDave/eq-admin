@@ -57,9 +57,6 @@ export default function App() {
                 <Button color="inherit" onClick={() => navigate('/map')}>
                   Map
                 </Button>
-                <Button color="inherit" onClick={() => navigate('/ministers')}>
-                  Ministers
-                </Button>
                 <Button color="inherit" onClick={() => navigate('/families')}>
                   Families
                 </Button>

@@ -1,25 +1,21 @@
 import { Fragment } from 'react';
-import type {
-  LinksFunction,
-  LoaderFunction,
-  ActionFunction,
-} from '@remix-run/server-runtime';
-import { json } from '@remix-run/node';
+import type { LinksFunction, LoaderFunction } from '@remix-run/server-runtime';
 import { useLoaderData } from '@remix-run/react';
-
 import Typography from '@mui/material/Typography';
-
 import stylesUrl from '~/styles/families.css';
-import type { Family } from '@prisma/client';
+import type { Family, Person } from '@prisma/client';
 import { db } from '~/architecture/db.server';
-
-import FamilyCard from '~/components/familyCard';
+import FamilyCard from '~/components/FamilyCard';
 
 export const links: LinksFunction = () => {
   return [{ rel: 'stylesheet', href: stylesUrl }];
 };
 
-type LoaderData = { families: Family[][] };
+export interface FamilyWithMembers extends Family {
+  persons: Person[];
+}
+
+type LoaderData = { families: FamilyWithMembers[][] };
 
 export const loader: LoaderFunction = async () => {
   const data = await db.family.findMany({
@@ -28,6 +24,9 @@ export const loader: LoaderFunction = async () => {
         name: 'asc',
       },
     ],
+    include: {
+      persons: true,
+    },
   });
   const families = 'abcdefghijklmnopqrstuvwxyz'
     .split('')
@@ -38,38 +37,11 @@ export const loader: LoaderFunction = async () => {
   };
 };
 
-export const action: ActionFunction = async ({ request }) => {
-  const form = await request.formData();
-
-  const id: string = form.get('id')?.toString() || '';
-  const value: string = form.get('value')?.toString() || '';
-
-  console.log(id, value);
-
-  if (id && value) {
-    const result = await db.family.update({
-      where: {
-        id,
-      },
-      data: {
-        active: value === 'true',
-      },
-    });
-    console.log(result);
-  } else {
-    throw new Error('oops');
-  }
-
-  return json({
-    value: form.get('value'),
-  });
-};
-
 export default function FamiliesRoute() {
   const data = useLoaderData<LoaderData>();
   return (
     <div id="families-page">
-      {data.families.map((grouping, idx) => {
+      {data.families.map((grouping) => {
         const letter = grouping[0].name[0];
         return (
           <Fragment key={`${letter}-group`}>

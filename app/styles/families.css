@@ -15,3 +15,22 @@
   margin-left: 35px;
   margin-bottom: -30px;
 }
+
+.family-members-container {
+  height: 370px;
+}
+
+.person-row {
+  border: solid 1px #eee;
+  border-radius: 5px;
+  background-color: rgba(200, 200, 200, 0.05);
+  padding: 3px;
+  margin: 3px 0px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.person-row-info {
+  height: 45px;
+}
