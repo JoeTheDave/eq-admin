@@ -2,24 +2,24 @@
 
 ## Local Setup
 
-Install JS Dependencies
+### Install JS Dependencies
 
 ```sh
 npm install
 ```
 
-Create .env
+### Create .env
 
 use .env.example and change your database username accordingly
 
-Create Database
+### Create Database
 
 ```sh
 npm run init-db
 npm run push-schema
 ```
 
-Populate Database
+### Populate Database
 
 You'll need to retrieve data from https://www.churchofjesuschrist.org/
 Login and go to directory
@@ -30,7 +30,7 @@ Copy the response of this api call into a json file `/prisma/data.json`
 npm run load-data
 ```
 
-Run the app
+### Run the app
 
 ```sh
 npm run dev
