@@ -1,5 +1,5 @@
 import type { LinksFunction, LoaderFunction } from '@remix-run/server-runtime';
-import { useLoaderData } from '@remix-run/react';
+import { useLoaderData, useNavigate } from '@remix-run/react';
 import { Fragment, useState } from 'react';
 import List from '@mui/material/List';
 import Divider from '@mui/material/Divider';
@@ -8,40 +8,71 @@ import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import { useGoogleMaps } from 'react-hook-google-maps';
-import { flatten } from 'lodash';
 import stylesUrl from '~/styles/map.css';
-import type { Family } from '@prisma/client';
+import type { Family, Person } from '@prisma/client';
 import { db } from '~/architecture/db.server';
 
 export const links: LinksFunction = () => {
   return [{ rel: 'stylesheet', href: stylesUrl }];
 };
 
-type LoaderData = { families: Family[][] };
+export interface PersonWithFamimly extends Person {
+  family: Family;
+}
 
-export const loader: LoaderFunction = async (/* { request } */) => {
-  // const url = new URL(request.url);
-  // const term = url.searchParams.get('test');
+type LoaderData = {
+  ministers: PersonWithFamimly[][];
+  families: Family[];
+  selectedMinisterIds: String[];
+};
 
-  const data = await db.family.findMany({
+export const loader: LoaderFunction = async ({ request }) => {
+  const url = new URL(request.url);
+  const ministersTerm = url.searchParams.get('ministers');
+
+  const people = await db.person.findMany({
+    where: {
+      isMinister: true,
+    },
+    include: {
+      family: true,
+    },
     orderBy: [
       {
         name: 'asc',
       },
     ],
   });
-  const families = 'abcdefghijklmnopqrstuvwxyz'
+
+  const ministers = 'abcdefghijklmnopqrstuvwxyz'
     .split('')
-    .map((letter) => data.filter((fam) => fam.name[0].toLowerCase() == letter))
+    .map((letter) =>
+      people.filter(
+        (minister) => minister.family.surname.toLowerCase()[0] === letter,
+      ),
+    )
     .filter((letterList) => letterList.length > 0);
+
+  const families = await db.family.findMany({
+    orderBy: [
+      {
+        name: 'asc',
+      },
+    ],
+  });
+
+  const selectedMinisterIds = ministersTerm ? ministersTerm.split('|') : [];
+
   return {
+    ministers,
     families,
+    selectedMinisterIds,
   };
 };
 
 export default function MapRoute() {
   const data = useLoaderData<LoaderData>();
-
+  const navigate = useNavigate();
   const { ref, map, google } = useGoogleMaps(
     'AIzaSyC-d1WM72-74auAY0USczfUb68ZAgbjxec',
     {
@@ -53,10 +84,7 @@ export default function MapRoute() {
   const [mapToolsOpen, setMapToolsOpen] = useState<boolean>(false);
 
   if (google) {
-    const allFams = flatten(data.families);
-    console.log(allFams);
-
-    const markers = allFams.map((fam) => {
+    const markers = data.families.map((fam) => {
       const marker = new google.maps.Marker({
         map,
         position: { lat: fam.lat, lng: fam.lng },
@@ -93,12 +121,12 @@ export default function MapRoute() {
 
   return (
     <div id="map-page">
-      <div id="member-list">
-        {data.families.map((letterList) => {
-          const letter = letterList[0].name[0];
+      <div id="minister-list">
+        {data.ministers.map((letterList) => {
+          const letter = letterList[0].family.surname[0];
           return (
             <Fragment key={`${letter}-group`}>
-              <div className="member-list-divider">
+              <div className="minister-list-divider">
                 <Divider
                   sx={{
                     flexGrow: 1,
@@ -122,15 +150,28 @@ export default function MapRoute() {
                 </Typography>
               </div>
               <List>
-                {letterList.map((family) => (
+                {letterList.map((minister) => (
                   <ListItemButton
-                    key={family.id}
+                    key={minister.id}
                     sx={{
                       minHeight: 48,
                     }}
+                    selected={data.selectedMinisterIds.includes(minister.id)}
+                    onClick={() =>
+                      navigate(
+                        `/map?ministers=${(data.selectedMinisterIds.includes(
+                          minister.id,
+                        )
+                          ? data.selectedMinisterIds.filter(
+                              (id) => id !== minister.id,
+                            )
+                          : [...data.selectedMinisterIds, minister.id]
+                        ).join('|')}`,
+                      )
+                    }
                   >
                     <ListItemText
-                      primary={family.name}
+                      primary={minister.name}
                       sx={{ opacity: 1, color: '#666666' }}
                     />
                   </ListItemButton>
