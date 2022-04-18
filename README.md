@@ -8,6 +8,10 @@ Install JS Dependencies
 npm install
 ```
 
+Create .env
+
+use .env.example and change your database username accordingly
+
 Create Database
 
 ```sh
