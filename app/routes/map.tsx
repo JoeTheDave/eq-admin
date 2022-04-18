@@ -51,14 +51,39 @@ export default function MapRoute() {
     const allFams = flatten(data.families);
     console.log(allFams);
 
-    const markers = allFams.map(
-      (fam) =>
-        new google.maps.Marker({
-          map,
-          position: { lat: fam.lat, lng: fam.lng },
-          title: fam.name,
-        }),
-    );
+    const markers = allFams.map((fam) => {
+      const marker = new google.maps.Marker({
+        map,
+        position: { lat: fam.lat, lng: fam.lng },
+      });
+
+      const infowindow = new google.maps.InfoWindow({
+        content: `<div class="info-content"><div style="font-weight: bold;">${
+          fam.name
+        }</div>${fam.address
+          .split('\n')
+          .map((addressPart) => `<div>${addressPart}</div>`)
+          .join('')}</div>${
+          fam.active
+            ? '<div class="info-status-active">ACTIVE</div>'
+            : fam.active === false
+            ? '<div class="info-status-inactive">INACTIVE</div>'
+            : '<div class="info-status-unknown">UNKNOWN</div>'
+        }`,
+        shouldFocus: false,
+        disableAutoPan: true,
+      });
+
+      marker.addListener('mouseover', function () {
+        infowindow.open(map, marker);
+      });
+
+      marker.addListener('mouseout', function () {
+        infowindow.close();
+      });
+
+      return marker;
+    });
   }
 
   return (
