@@ -23,6 +23,7 @@ model Family {
   lat Float
   lng Float
   active Boolean?
+  surname String
 }
 
 model Person {
@@ -31,10 +32,11 @@ model Person {
   updatedAt DateTime @updatedAt
   familyId String
   family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  chruchId String
+  churchId String
   name String
   calling String?
   isMinister Boolean @default(false)
+  familyOrder Int
 }
 
 model Distance {

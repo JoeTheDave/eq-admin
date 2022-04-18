@@ -6,6 +6,7 @@ const db = new PrismaClient();
 
 interface FamilyData {
   name: string;
+  surname: string;
   address: string;
   coordinates?: {
     latitude: number;
@@ -31,14 +32,16 @@ var familyData: FamilyData[] = JSON.parse(
       return await db.family.create({
         data: {
           name: family.name,
+          surname: family.surname,
           address: family.address,
           lat: family.coordinates?.latitude || 0,
           lng: family.coordinates?.longitude || 0,
           churchId: family.uuid,
           persons: {
-            create: family.members.map((member) => ({
+            create: family.members.map((member, idx) => ({
               name: member.displayName,
-              chruchId: member.uuid,
+              churchId: member.uuid,
+              familyOrder: idx,
               calling: (member.positions || [])
                 .map((pos) => pos.positionTypeName)
                 .join('|'),

@@ -51,13 +51,15 @@ const FamilyCard: React.FC<FamilyCardProps> = ({ family }) => {
           {family.name.split(', ')[1]}
         </Typography>
         <div className="family-members-container">
-          {family.persons.map((person) => (
-            <PersonRow
-              key={`member-${person.id}`}
-              person={person}
-              family={family}
-            />
-          ))}
+          {family.persons
+            .sort((a, b) => (a.familyOrder > b.familyOrder ? 1 : -1))
+            .map((person) => (
+              <PersonRow
+                key={`member-${person.id}`}
+                person={person}
+                family={family}
+              />
+            ))}
         </div>
       </CardContent>
       <CardActions sx={{ justifyContent: 'flex-end' }}>
