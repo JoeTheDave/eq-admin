@@ -1,0 +1,40 @@
+[
+  {
+    "uuid": "3f3dde43-f763-4563-aafb-fde14ca14e22",
+    "unitNumber": 123456,
+    "name": "Doe, John",
+    "surname": "Doe",
+    "address": "1234 5th St\nKansas City, Kansas 12345",
+    "coordinates": { "latitude": 39.5, "longitude": -94.5 },
+    "verified": false,
+    "members": [
+      {
+        "uuid": "0cd47fdd-0302-49e9-8bdb-f9db81f7e435",
+        "householdUuid": "3f3dde43-f763-4563-aafb-fde14ca14e22",
+        "unitNumber": 123456,
+        "head": true,
+        "name": "Doe, John",
+        "displayName": "John Doe",
+        "givenName": "John",
+        "surname": "Doe",
+        "phone": "123-456-7890",
+        "email": "johndoe@aol.com",
+        "privacy": {
+          "master": "STAKE",
+          "photo": "STAKE",
+          "phone": "STAKE",
+          "email": "STAKE"
+        },
+        "editable": false
+      }
+    ],
+    "privacy": {
+      "master": "STAKE",
+      "address": "STAKE",
+      "coordinates": "STAKE",
+      "photo": "STAKE"
+    },
+    "editable": false,
+    "movable": true
+  }
+]
