@@ -1,12 +1,12 @@
 import type { LinksFunction, LoaderFunction } from '@remix-run/server-runtime';
 import { useLoaderData } from '@remix-run/react';
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
 import List from '@mui/material/List';
 import Divider from '@mui/material/Divider';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
-// import { Wrapper, Status } from "@googlemaps/react-wrapper";
+import Button from '@mui/material/Button';
 import { useGoogleMaps } from 'react-hook-google-maps';
 import { flatten } from 'lodash';
 import stylesUrl from '~/styles/map.css';
@@ -19,7 +19,10 @@ export const links: LinksFunction = () => {
 
 type LoaderData = { families: Family[][] };
 
-export const loader: LoaderFunction = async () => {
+export const loader: LoaderFunction = async (/* { request } */) => {
+  // const url = new URL(request.url);
+  // const term = url.searchParams.get('test');
+
   const data = await db.family.findMany({
     orderBy: [
       {
@@ -46,6 +49,8 @@ export default function MapRoute() {
       zoom: 12,
     },
   );
+
+  const [mapToolsOpen, setMapToolsOpen] = useState<boolean>(false);
 
   if (google) {
     const allFams = flatten(data.families);
@@ -135,7 +140,25 @@ export default function MapRoute() {
           );
         })}
       </div>
-      <div id="map-container" ref={ref}></div>
+      <div id="map-container">
+        <div id="map-controls">
+          <div id="map-controls-button">
+            <Button
+              color="warning"
+              variant="contained"
+              onClick={() => setMapToolsOpen(!mapToolsOpen)}
+            >
+              Tools
+            </Button>
+          </div>
+          <div
+            className={`map-controls-content${
+              mapToolsOpen ? ' tools-open' : ''
+            }`}
+          ></div>
+        </div>
+        <div id="map-content" ref={ref}></div>
+      </div>
     </div>
   );
 }
