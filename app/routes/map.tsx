@@ -1,6 +1,6 @@
 import type { LinksFunction, LoaderFunction } from '@remix-run/server-runtime';
 import { useLoaderData, useNavigate } from '@remix-run/react';
-import { Fragment, useState } from 'react';
+import { Fragment, useState, useEffect } from 'react';
 import List from '@mui/material/List';
 import Divider from '@mui/material/Divider';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -8,20 +8,18 @@ import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import { useGoogleMaps } from 'react-hook-google-maps';
+import { flatten } from 'lodash';
 import stylesUrl from '~/styles/map.css';
-import type { Family, Person } from '@prisma/client';
+import type { Family } from '@prisma/client';
+import type { PersonWithFamily } from '~/types/PersonWithFamily';
 import { db } from '~/architecture/db.server';
 
 export const links: LinksFunction = () => {
   return [{ rel: 'stylesheet', href: stylesUrl }];
 };
 
-export interface PersonWithFamimly extends Person {
-  family: Family;
-}
-
 type LoaderData = {
-  ministers: PersonWithFamimly[][];
+  ministers: PersonWithFamily[][];
   families: Family[];
   selectedMinisterIds: String[];
 };
@@ -44,7 +42,9 @@ export const loader: LoaderFunction = async ({ request }) => {
     ],
   });
 
-  const ministers = 'abcdefghijklmnopqrstuvwxyz'
+  const letters = 'abcdefghijklmnopqrstuvwxyz';
+
+  const ministers = letters
     .split('')
     .map((letter) =>
       people.filter(
@@ -53,15 +53,58 @@ export const loader: LoaderFunction = async ({ request }) => {
     )
     .filter((letterList) => letterList.length > 0);
 
-  const families = await db.family.findMany({
-    orderBy: [
-      {
-        name: 'asc',
-      },
-    ],
-  });
-
   const selectedMinisterIds = ministersTerm ? ministersTerm.split('|') : [];
+
+  const selectedMinisterFamilies = selectedMinisterIds.map(
+    (ministerId) =>
+      (flatten(ministers).find((m) => m.id === ministerId) as PersonWithFamily)
+        .family,
+  );
+
+  const query = `
+  SELECT *
+  FROM (
+    SELECT a."destinationFamilyId", (${letters
+      .split('')
+      .splice(0, selectedMinisterFamilies.length)
+      .map((letter) => `${letter}.distance`)
+      .join(' + ')}) / ${selectedMinisterFamilies.length} AS "avgDistance"
+    ${selectedMinisterFamilies
+      .map(
+        (family, idx) => `
+    ${idx === 0 ? 'FROM' : 'INNER JOIN'} (
+      SELECT "sourceFamilyId", "destinationFamilyId", distance
+      FROM "Distance"
+      WHERE "sourceFamilyId" = '${family.id}'
+    ) ${letters[idx]} ${
+          idx > 0
+            ? `ON ${letters[idx - 1]}."destinationFamilyId" = ${
+                letters[idx]
+              }."destinationFamilyId"`
+            : ''
+        }
+    `,
+      )
+      .join('')}
+  ) avgDist
+  INNER JOIN "Family" f ON avgDist."destinationFamilyId" = f.id
+  WHERE f.active = TRUE
+  ORDER BY "avgDistance"
+  LIMIT 5;
+  `;
+
+  const families = selectedMinisterIds.length
+    ? await db.$queryRawUnsafe(query)
+    : await db.family.findMany({
+        where: {
+          active: true,
+        },
+        orderBy: [
+          {
+            name: 'asc',
+          },
+        ],
+      });
 
   return {
     ministers,
@@ -69,6 +112,8 @@ export const loader: LoaderFunction = async ({ request }) => {
     selectedMinisterIds,
   };
 };
+
+let mapMarkers: any[] = [];
 
 export default function MapRoute() {
   const data = useLoaderData<LoaderData>();
@@ -83,41 +128,63 @@ export default function MapRoute() {
 
   const [mapToolsOpen, setMapToolsOpen] = useState<boolean>(false);
 
-  if (google) {
-    const markers = data.families.map((fam) => {
-      const marker = new google.maps.Marker({
-        map,
-        position: { lat: fam.lat, lng: fam.lng },
-      });
+  console.log(data);
 
-      const infowindow = new google.maps.InfoWindow({
-        content: `<div class="info-content"><div style="font-weight: bold;">${
-          fam.name
-        }</div>${fam.address
-          .split('\n')
-          .map((addressPart) => `<div>${addressPart}</div>`)
-          .join('')}</div>${
-          fam.active
-            ? '<div class="info-status-active">ACTIVE</div>'
-            : fam.active === false
-            ? '<div class="info-status-inactive">INACTIVE</div>'
-            : '<div class="info-status-unknown">UNKNOWN</div>'
-        }`,
-        shouldFocus: false,
-        disableAutoPan: true,
-      });
-
-      marker.addListener('mouseover', function () {
-        infowindow.open(map, marker);
-      });
-
-      marker.addListener('mouseout', function () {
-        infowindow.close();
-      });
-
-      return marker;
+  const createMapMarker = ({
+    family,
+    color = 'red',
+  }: {
+    family: Family;
+    color?: String;
+  }) => {
+    const marker = new google.maps.Marker({
+      map,
+      position: { lat: family.lat, lng: family.lng },
+      icon: {
+        url: `http://maps.google.com/mapfiles/ms/icons/${color}-dot.png`,
+      },
     });
-  }
+
+    const infowindow = new google.maps.InfoWindow({
+      content: `<div class="info-content"><div style="font-weight: bold;">${
+        family.name
+      }</div>${family.address
+        .split('\n')
+        .map((addressPart) => `<div>${addressPart}</div>`)
+        .join('')}</div>${
+        family.active
+          ? '<div class="info-status-active">ACTIVE</div>'
+          : family.active === false
+          ? '<div class="info-status-inactive">INACTIVE</div>'
+          : '<div class="info-status-unknown">UNKNOWN</div>'
+      }`,
+      shouldFocus: false,
+      disableAutoPan: true,
+    });
+
+    marker.addListener('mouseover', function () {
+      infowindow.open(map, marker);
+    });
+
+    marker.addListener('mouseout', function () {
+      infowindow.close();
+    });
+
+    return marker;
+  };
+
+  useEffect(() => {
+    if (google) {
+      mapMarkers.forEach((marker) => marker.setMap(null));
+      mapMarkers = flatten([
+        flatten(data.ministers)
+          .filter((minister) => data.selectedMinisterIds.includes(minister.id))
+          .map((minister) => minister.family)
+          .map((fam) => createMapMarker({ family: fam, color: 'blue' })),
+        data.families.map((fam) => createMapMarker({ family: fam })),
+      ]);
+    }
+  }, [data.selectedMinisterIds]);
 
   return (
     <div id="map-page">
@@ -150,32 +217,40 @@ export default function MapRoute() {
                 </Typography>
               </div>
               <List>
-                {letterList.map((minister) => (
-                  <ListItemButton
-                    key={minister.id}
-                    sx={{
-                      minHeight: 48,
-                    }}
-                    selected={data.selectedMinisterIds.includes(minister.id)}
-                    onClick={() =>
-                      navigate(
-                        `/map?ministers=${(data.selectedMinisterIds.includes(
-                          minister.id,
-                        )
-                          ? data.selectedMinisterIds.filter(
-                              (id) => id !== minister.id,
-                            )
-                          : [...data.selectedMinisterIds, minister.id]
-                        ).join('|')}`,
+                {letterList.map((minister) => {
+                  const isActive = data.selectedMinisterIds.includes(
+                    minister.id,
+                  );
+                  const newIdsList = isActive
+                    ? data.selectedMinisterIds.filter(
+                        (id) => id !== minister.id,
                       )
-                    }
-                  >
-                    <ListItemText
-                      primary={minister.name}
-                      sx={{ opacity: 1, color: '#666666' }}
-                    />
-                  </ListItemButton>
-                ))}
+                    : [...data.selectedMinisterIds, minister.id];
+
+                  return (
+                    <ListItemButton
+                      key={minister.id}
+                      sx={{
+                        minHeight: 48,
+                      }}
+                      selected={isActive}
+                      onClick={() =>
+                        navigate(
+                          `/map${
+                            newIdsList.length
+                              ? `?ministers=${newIdsList.join('|')}`
+                              : ''
+                          }`,
+                        )
+                      }
+                    >
+                      <ListItemText
+                        primary={minister.name}
+                        sx={{ opacity: 1, color: '#666666' }}
+                      />
+                    </ListItemButton>
+                  );
+                })}
               </List>
             </Fragment>
           );

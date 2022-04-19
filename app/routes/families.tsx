@@ -3,17 +3,14 @@ import type { LinksFunction, LoaderFunction } from '@remix-run/server-runtime';
 import { useLoaderData } from '@remix-run/react';
 import Typography from '@mui/material/Typography';
 import stylesUrl from '~/styles/families.css';
-import type { Family, Person } from '@prisma/client';
 import { db } from '~/architecture/db.server';
 import FamilyCard from '~/components/FamilyCard';
+
+import type { FamilyWithMembers } from '~/types/FamilyWithMembers';
 
 export const links: LinksFunction = () => {
   return [{ rel: 'stylesheet', href: stylesUrl }];
 };
-
-export interface FamilyWithMembers extends Family {
-  persons: Person[];
-}
 
 type LoaderData = { families: FamilyWithMembers[][] };
 
