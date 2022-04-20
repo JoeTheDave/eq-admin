@@ -184,7 +184,7 @@ export default function MapRoute() {
         data.families.map((fam) => createMapMarker({ family: fam })),
       ]);
     }
-  }, [data.selectedMinisterIds]);
+  }, [data.selectedMinisterIds, map]);
 
   return (
     <div id="map-page">
