@@ -1,6 +1,8 @@
 import Typography from '@mui/material/Typography';
 import Switch from '@mui/material/Switch';
 import { useFetcher } from '@remix-run/react';
+
+import type { FC } from 'react';
 import type { Person, Family } from '@prisma/client';
 
 interface PersonRowProps {
@@ -8,7 +10,7 @@ interface PersonRowProps {
   family: Family;
 }
 
-const PersonRow: React.FC<PersonRowProps> = ({ person, family }) => {
+const PersonRow: FC<PersonRowProps> = ({ person, family }) => {
   const fetcher = useFetcher();
   return (
     <div className="person-row">

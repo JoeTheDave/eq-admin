@@ -1,6 +1,7 @@
-import type { ActionFunction } from '@remix-run/server-runtime';
 import { json } from '@remix-run/node';
 import { db } from '~/architecture/db.server';
+
+import type { ActionFunction } from '@remix-run/server-runtime';
 
 export const action: ActionFunction = async ({ request }) => {
   const form = await request.formData();

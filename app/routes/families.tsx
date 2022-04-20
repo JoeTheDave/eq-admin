@@ -1,12 +1,12 @@
 import { Fragment } from 'react';
-import type { LinksFunction, LoaderFunction } from '@remix-run/server-runtime';
 import { useLoaderData } from '@remix-run/react';
 import Typography from '@mui/material/Typography';
 import stylesUrl from '~/styles/families.css';
-import { db } from '~/architecture/db.server';
 import FamilyCard from '~/components/FamilyCard';
+import dataService from '~/architecture/dataService';
 
-import type { FamilyWithMembers } from '~/types/FamilyWithMembers';
+import type { LinksFunction, LoaderFunction } from '@remix-run/server-runtime';
+import type { FamilyWithMembers } from '~/architecture/types';
 
 export const links: LinksFunction = () => {
   return [{ rel: 'stylesheet', href: stylesUrl }];
@@ -15,30 +15,18 @@ export const links: LinksFunction = () => {
 type LoaderData = { families: FamilyWithMembers[][] };
 
 export const loader: LoaderFunction = async () => {
-  const data = await db.family.findMany({
-    orderBy: [
-      {
-        name: 'asc',
-      },
-    ],
-    include: {
-      persons: true,
-    },
-  });
-  const families = 'abcdefghijklmnopqrstuvwxyz'
-    .split('')
-    .map((letter) => data.filter((fam) => fam.name[0].toLowerCase() == letter))
-    .filter((letterList) => letterList.length > 0);
+  const families = await dataService.getFamiliesGrouped();
+
   return {
     families,
   };
 };
 
 export default function FamiliesRoute() {
-  const data = useLoaderData<LoaderData>();
+  const { families } = useLoaderData<LoaderData>();
   return (
     <div id="families-page">
-      {data.families.map((grouping) => {
+      {families.map((grouping) => {
         const letter = grouping[0].name[0];
         return (
           <Fragment key={`${letter}-group`}>

@@ -4,14 +4,16 @@ import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { useFetcher } from '@remix-run/react';
-import type { FamilyWithMembers } from '~/routes/families';
 import PersonRow from '~/components/PersonRow';
+
+import type { FC } from 'react';
+import type { FamilyWithMembers } from '~/architecture/types';
 
 interface FamilyCardProps {
   family: FamilyWithMembers;
 }
 
-const FamilyCard: React.FC<FamilyCardProps> = ({ family }) => {
+const FamilyCard: FC<FamilyCardProps> = ({ family }) => {
   const fetcher = useFetcher();
   return (
     <Card
