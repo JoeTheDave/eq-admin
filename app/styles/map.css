@@ -43,10 +43,17 @@
   transition: 0.25s;
   z-index: 1000;
   border: solid 0px rgba(50, 50, 50, 0);
+  overflow: hidden;
 }
 .tools-open {
   height: 200px;
   border: solid 1px rgba(50, 50, 50, 1);
+}
+
+.activity-status-list {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 #map-content {

@@ -1,11 +1,21 @@
 import { db } from '~/architecture/db.server';
 
 import type { Family } from '@prisma/client';
-import type { PersonWithFamily, FamilyWithMembers } from '~/architecture/types';
+import type {
+  PersonWithFamily,
+  FamilyWithMembers,
+  ActivityType,
+} from '~/architecture/types';
 
 const letters = 'abcdefghijklmnopqrstuvwxyz';
 
-export const getAllFamilies = async () => {
+export const getAllFamilies = async (showActivityTypes: ActivityType[]) => {
+  const activityTypeMap = {
+    active: true,
+    unknown: null,
+    inactive: false,
+  };
+
   return (await db.family.findMany({
     orderBy: [
       {
@@ -15,11 +25,16 @@ export const getAllFamilies = async () => {
     include: {
       persons: true,
     },
+    where: {
+      OR: showActivityTypes.map((actType) => ({
+        active: activityTypeMap[actType],
+      })),
+    },
   })) as FamilyWithMembers[];
 };
 
 export const getFamiliesGrouped = async () => {
-  const families = await getAllFamilies();
+  const families = await getAllFamilies(['active', 'unknown', 'inactive']);
   return letters
     .split('')
     .map((letter) =>
@@ -57,13 +72,22 @@ export const getMinistersGrouped = async () => {
     .filter((letterList) => letterList.length > 0) as PersonWithFamily[][];
 };
 
-export const getRecommendedMinisteringList = async (ministerIds: string[]) => {
+export const getRecommendedMinisteringList = async (
+  ministerIds: string[],
+  showActivityTypes: ActivityType[],
+) => {
   const ministers = await getMinisters();
 
   const selectedMinisterFamilies = ministerIds.map(
     (ministerId) =>
       (ministers.find((m) => m.id === ministerId) as PersonWithFamily).family,
   );
+
+  const activityTypeMap = {
+    active: '= TRUE',
+    unknown: 'IS NULL',
+    inactive: '= FALSE',
+  };
 
   const query = `
   SELECT *
@@ -92,7 +116,9 @@ export const getRecommendedMinisteringList = async (ministerIds: string[]) => {
       .join('')}
   ) avgDist
   INNER JOIN "Family" f ON avgDist."destinationFamilyId" = f.id
-  WHERE f.active = TRUE
+  WHERE ${showActivityTypes
+    .map((actType) => `f.active ${activityTypeMap[actType]}`)
+    .join(' OR ')}
   ORDER BY "avgDistance"
   LIMIT 5;
   `;

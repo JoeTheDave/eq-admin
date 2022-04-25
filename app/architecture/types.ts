@@ -7,3 +7,5 @@ export interface FamilyWithMembers extends Family {
 export interface PersonWithFamily extends Person {
   family: Family;
 }
+
+export type ActivityType = 'active' | 'unknown' | 'inactive';

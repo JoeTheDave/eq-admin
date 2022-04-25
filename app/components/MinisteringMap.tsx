@@ -3,6 +3,11 @@ import { useGoogleMaps } from 'react-hook-google-maps';
 import { flatten } from 'lodash';
 import cc from 'classcat';
 import Button from '@mui/material/Button';
+import CardContent from '@mui/material/CardContent';
+import Switch from '@mui/material/Switch';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Typography from '@mui/material/Typography';
+import useQueryStringNavigator from '~/architecture/hooks/useQueryStringNavigator';
 
 import type { FC } from 'react';
 import type { PersonWithFamily } from '~/architecture/types';
@@ -10,17 +15,12 @@ import type { Family } from '@prisma/client';
 
 interface MinisteringMapProps {
   ministers: PersonWithFamily[];
-  selectedMinisterIds: string[];
   families: Family[];
 }
 
 let mapMarkers: any[] = [];
 
-const MinisteringMap: FC<MinisteringMapProps> = ({
-  ministers,
-  selectedMinisterIds,
-  families,
-}) => {
+const MinisteringMap: FC<MinisteringMapProps> = ({ ministers, families }) => {
   const [mapToolsOpen, setMapToolsOpen] = useState<boolean>(false);
 
   const { ref, map, google } = useGoogleMaps(
@@ -30,6 +30,10 @@ const MinisteringMap: FC<MinisteringMapProps> = ({
       zoom: 12,
     },
   );
+
+  const queryStringNavigator = useQueryStringNavigator();
+  const activityTypes = queryStringNavigator.getValues('show');
+  const selectedMinisterIds = queryStringNavigator.getValues('ministers');
 
   const createMapMarker = ({
     family,
@@ -85,7 +89,7 @@ const MinisteringMap: FC<MinisteringMapProps> = ({
         families.map((fam) => createMapMarker({ family: fam })),
       ]);
     }
-  }, [selectedMinisterIds, map]);
+  }, [activityTypes, ministers, map]);
 
   return (
     <div id="map-container">
@@ -104,7 +108,72 @@ const MinisteringMap: FC<MinisteringMapProps> = ({
             'map-controls-content': true,
             'tools-open': mapToolsOpen,
           })}
-        ></div>
+        >
+          <CardContent>
+            <Typography
+              sx={{ fontSize: 16, fontWeight: 'bold' }}
+              color="#666"
+              gutterBottom
+            >
+              Show Families of type:
+            </Typography>
+            <div className="activity-status-list">
+              <FormControlLabel
+                control={
+                  <Switch
+                    color="primary"
+                    checked={activityTypes.includes('active')}
+                  />
+                }
+                label="Active"
+                disabled={
+                  activityTypes.includes('active') && activityTypes.length === 1
+                }
+                labelPlacement="start"
+                sx={{ color: '#0d0' }}
+                onChange={() =>
+                  queryStringNavigator.toggleValue('show', 'active')
+                }
+              />
+              <FormControlLabel
+                control={
+                  <Switch
+                    color="primary"
+                    checked={activityTypes.includes('unknown')}
+                  />
+                }
+                label="Unknown"
+                disabled={
+                  activityTypes.includes('unknown') &&
+                  activityTypes.length === 1
+                }
+                labelPlacement="start"
+                sx={{ color: '#aaa' }}
+                onChange={() =>
+                  queryStringNavigator.toggleValue('show', 'unknown')
+                }
+              />
+              <FormControlLabel
+                control={
+                  <Switch
+                    color="primary"
+                    checked={activityTypes.includes('inactive')}
+                  />
+                }
+                label="Inactive"
+                disabled={
+                  activityTypes.includes('inactive') &&
+                  activityTypes.length === 1
+                }
+                labelPlacement="start"
+                sx={{ color: '#f00' }}
+                onChange={() =>
+                  queryStringNavigator.toggleValue('show', 'inactive')
+                }
+              />
+            </div>
+          </CardContent>
+        </div>
       </div>
       <div id="map-content" ref={ref}></div>
     </div>

@@ -1,10 +1,10 @@
 import { Fragment } from 'react';
-import { useNavigate } from '@remix-run/react';
 import List from '@mui/material/List';
 import Divider from '@mui/material/Divider';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
+import useQueryStringNavigator from '~/architecture/hooks/useQueryStringNavigator';
 
 import type { FC } from 'react';
 import type { PersonWithFamily } from '~/architecture/types';
@@ -12,15 +12,14 @@ import type { PersonWithFamily } from '~/architecture/types';
 interface MinistersListGroupProps {
   groupLetter: string;
   ministers: PersonWithFamily[];
-  selectedMinisterIds: string[];
 }
 
 const MinistersListGroup: FC<MinistersListGroupProps> = ({
   groupLetter,
   ministers,
-  selectedMinisterIds,
 }) => {
-  const navigate = useNavigate();
+  const queryStringNavigator = useQueryStringNavigator();
+  const selectedMinisterIds = queryStringNavigator.getValues('ministers');
 
   return (
     <Fragment key={`${groupLetter}-group`}>
@@ -50,9 +49,6 @@ const MinistersListGroup: FC<MinistersListGroupProps> = ({
       <List>
         {ministers.map((minister) => {
           const isActive = selectedMinisterIds.includes(minister.id);
-          const newIdsList = isActive
-            ? selectedMinisterIds.filter((id) => id !== minister.id)
-            : [...selectedMinisterIds, minister.id];
 
           return (
             <ListItemButton
@@ -62,13 +58,7 @@ const MinistersListGroup: FC<MinistersListGroupProps> = ({
               }}
               selected={isActive}
               onClick={() =>
-                navigate(
-                  `/map${
-                    newIdsList.length
-                      ? `?ministers=${newIdsList.join('|')}`
-                      : ''
-                  }`,
-                )
+                queryStringNavigator.toggleValue('ministers', minister.id)
               }
             >
               <ListItemText

@@ -5,13 +5,9 @@ import type { PersonWithFamily } from '~/architecture/types';
 
 interface MinistersListProps {
   ministers: PersonWithFamily[][];
-  selectedMinisterIds: string[];
 }
 
-const MinistersList: FC<MinistersListProps> = ({
-  ministers,
-  selectedMinisterIds,
-}) => (
+const MinistersList: FC<MinistersListProps> = ({ ministers }) => (
   <div id="minister-list">
     {ministers.map((ministerGroup) => {
       const letter = ministerGroup[0].family.surname[0];
@@ -20,7 +16,6 @@ const MinistersList: FC<MinistersListProps> = ({
           key={`minister-gorup-${letter}`}
           groupLetter={letter}
           ministers={ministerGroup}
-          selectedMinisterIds={selectedMinisterIds}
         />
       );
     })}
