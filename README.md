@@ -39,7 +39,7 @@ npm run dev
 ## TODO
 
 - [ ] Bug: Map pins render several times for each toggle
-- [ ] Bug: Multiple households living in same address have pins mapped over each other - combine into single pin
 - [ ] Add ability to view n number of close households
 - [ ] Enhance the import process to ensure data continuity
+- [ ] Move same address geo differentiation to data import process
 - [ ] Add household comments

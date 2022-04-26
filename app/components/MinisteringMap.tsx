@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useGoogleMaps } from 'react-hook-google-maps';
-import { flatten } from 'lodash';
+import { flatten, groupBy } from 'lodash';
 import useQueryStringNavigator from '~/architecture/hooks/useQueryStringNavigator';
 import MapControls from '~/components/MapControls';
 
@@ -74,6 +74,28 @@ const MinisteringMap: FC<MinisteringMapProps> = ({
   };
 
   useEffect(() => {
+    const fams = flatten(
+      Object.values(
+        groupBy(families, (fam) => fam.address.split('\n')[0].toLowerCase()),
+      ).map((famGroup) => {
+        if (famGroup.length === 1) {
+          return famGroup;
+        }
+        const avgLat = (famGroup[0].lat + famGroup[1].lat) / 2;
+        const avgLng = (famGroup[0].lng + famGroup[1].lng) / 2;
+
+        famGroup[0].lat = avgLat;
+        famGroup[0].lng = avgLng - 0.00005;
+        famGroup[1].lat = avgLat;
+        famGroup[1].lng = avgLng + 0.00005;
+        return famGroup;
+      }),
+    );
+
+    const activeFamilies = fams.filter((fam) => fam.active);
+    const unknownFamilies = fams.filter((fam) => fam.active === null);
+    const inactiveFamilies = fams.filter((fam) => fam.active === false);
+
     if (google) {
       mapMarkers.forEach((marker) => marker.setMap(null));
       mapMarkers = flatten([
@@ -81,7 +103,16 @@ const MinisteringMap: FC<MinisteringMapProps> = ({
           .filter((minister) => selectedMinisterIds.includes(minister.id))
           .map((minister) => minister.family)
           .map((fam) => createMapMarker({ family: fam, color: 'blue' })),
-        families.map((fam) => createMapMarker({ family: fam })),
+
+        activeFamilies.map((fam) =>
+          createMapMarker({ family: fam, color: 'green' }),
+        ),
+        unknownFamilies.map((fam) =>
+          createMapMarker({ family: fam, color: 'yellow' }),
+        ),
+        inactiveFamilies.map((fam) =>
+          createMapMarker({ family: fam, color: 'pink' }),
+        ),
       ]);
     }
   }, [activityTypes, ministers, map]);
