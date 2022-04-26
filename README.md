@@ -10,7 +10,7 @@ npm install
 
 ### Create .env
 
-use .env.example and use relevant values for your app
+using .env.example as a guide and changing values to be relevant for your app
 
 ### Create Database
 
