@@ -10,7 +10,7 @@ npm install
 
 ### Create .env
 
-use .env.example and change your database username accordingly
+use .env.example and use relevant values for your app
 
 ### Create Database
 
