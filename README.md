@@ -38,7 +38,9 @@ npm run dev
 
 ## TODO
 
-[] Break out map tools into separate component
-[] Bug: Map pins render several times for each toggle
-[] Bug: Multiple households living in same address have pins mapped over each other - combine into single pin
-[] Add ability to view n number of close households
+[ ] Break out map tools into separate component
+[ ] Bug: Map pins render several times for each toggle
+[ ] Bug: Multiple households living in same address have pins mapped over each other - combine into single pin
+[ ] Add ability to view n number of close households
+[ ] Enhance the import process to ensure data continuity
+[ ] Add household comments

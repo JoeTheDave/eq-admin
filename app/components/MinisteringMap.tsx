@@ -16,20 +16,22 @@ import type { Family } from '@prisma/client';
 interface MinisteringMapProps {
   ministers: PersonWithFamily[];
   families: Family[];
+  apiKey: string;
 }
 
 let mapMarkers: any[] = [];
 
-const MinisteringMap: FC<MinisteringMapProps> = ({ ministers, families }) => {
+const MinisteringMap: FC<MinisteringMapProps> = ({
+  ministers,
+  families,
+  apiKey,
+}) => {
   const [mapToolsOpen, setMapToolsOpen] = useState<boolean>(false);
 
-  const { ref, map, google } = useGoogleMaps(
-    'AIzaSyC-d1WM72-74auAY0USczfUb68ZAgbjxec',
-    {
-      center: { lat: 39.0628883, lng: -94.6942146 },
-      zoom: 12,
-    },
-  );
+  const { ref, map, google } = useGoogleMaps(apiKey, {
+    center: { lat: 39.0628883, lng: -94.6942146 },
+    zoom: 12,
+  });
 
   const queryStringNavigator = useQueryStringNavigator();
   const activityTypes = queryStringNavigator.getValues('show');

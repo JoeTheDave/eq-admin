@@ -19,6 +19,7 @@ export const links: LinksFunction = () => {
 type LoaderData = {
   ministers: PersonWithFamily[][];
   families: Family[];
+  apiKey: string;
 };
 
 export const loader: LoaderFunction = async ({ request }) => {
@@ -26,6 +27,9 @@ export const loader: LoaderFunction = async ({ request }) => {
   const selectedMinisterIds = queryString.getValues('ministers');
   const activityTypes = queryString.getValues('show') as ActivityType[];
   const ministers = await dataService.getMinistersGrouped();
+  const apiKey = process.env.GOOGLE_API_KEY;
+
+  console.log(apiKey);
 
   const families = selectedMinisterIds.length
     ? await dataService.getRecommendedMinisteringList(
@@ -37,11 +41,12 @@ export const loader: LoaderFunction = async ({ request }) => {
   return {
     ministers,
     families,
+    apiKey,
   };
 };
 
 export default function MapRoute() {
-  const { ministers, families } = useLoaderData<LoaderData>();
+  const { ministers, families, apiKey } = useLoaderData<LoaderData>();
   const queryStringNavigator = useQueryStringNavigator();
 
   useEffect(() => {
@@ -53,7 +58,11 @@ export default function MapRoute() {
   return (
     <div id="map-page">
       <MinistersList ministers={ministers} />
-      <MinisteringMap ministers={flatten(ministers)} families={families} />
+      <MinisteringMap
+        ministers={flatten(ministers)}
+        families={families}
+        apiKey={apiKey}
+      />
     </div>
   );
 }
